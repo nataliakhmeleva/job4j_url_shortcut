@@ -21,9 +21,13 @@ public class SiteController {
 
     @PostMapping("/registration")
     public ResponseEntity<SiteDto> signUp(@Valid @RequestBody DomainNameDto name) {
-        return new ResponseEntity<>(
-                this.siteService.save(name),
-                HttpStatus.CREATED
-        );
+        var savedSite = siteService.save(name);
+        if (savedSite.getLogin() == null || savedSite.getPassword() == null) {
+            throw new NullPointerException("Login and password mustn't be empty");
+        }
+        if (savedSite.getPassword().length() < 6) {
+            throw new IllegalArgumentException("Invalid password");
+        }
+        return new ResponseEntity<>(savedSite, HttpStatus.CREATED);
     }
 }

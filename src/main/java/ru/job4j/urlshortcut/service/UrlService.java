@@ -8,10 +8,11 @@ import ru.job4j.urlshortcut.dto.UrlDto;
 import ru.job4j.urlshortcut.model.Url;
 import ru.job4j.urlshortcut.repository.UrlRepository;
 
-import java.util.ArrayList;
+import javax.transaction.Transactional;
 import java.util.List;
 import java.util.Optional;
 
+import static ru.job4j.urlshortcut.constant.LengthRandomCode.LENGTH_URL_CODE;
 import static ru.job4j.urlshortcut.util.RandomCodeUtil.generateRandomCode;
 
 @Service
@@ -19,12 +20,34 @@ import static ru.job4j.urlshortcut.util.RandomCodeUtil.generateRandomCode;
 public class UrlService {
     private final UrlRepository urlRepository;
 
-    Optional<Url> findByUrl(String url) {
+    public Optional<Url> findByUrl(String url) {
         return urlRepository.findByUrl(url);
     }
 
+    public Optional<Url> findByCode(String code) {
+        return urlRepository.findByCode(code);
+    }
+
+    public void increaseTotal(String code) {
+        urlRepository.increaseTotal(code);
+    }
+
+    @Transactional
+    public Optional<Url> increaseTotalIfPresentCode(String code) {
+        var url = findByCode(code);
+        if (url.isPresent()) {
+            increaseTotal(code);
+        }
+        return url;
+    }
+
+    public List<StatisticDto> findAll() {
+        return urlRepository.findAllUrl();
+    }
+
+    @Transactional
     public CodeDto save(UrlDto urlDto) {
-        var code = generateRandomCode(7);
+        var code = createCode();
         var fullUrl = urlDto.getUrl();
         var urlOptional = findByUrl(fullUrl);
         if (urlOptional.isPresent()) {
@@ -38,19 +61,11 @@ public class UrlService {
         return new CodeDto(code);
     }
 
-    public Optional<Url> findByCode(String code) {
-        return urlRepository.findByCode(code);
-    }
-
-    public void increaseTotal(String code) {
-        urlRepository.increaseTotal(code);
-    }
-
-    public List<StatisticDto> findAll() {
-        List<StatisticDto> list = new ArrayList<>();
-        for (Url url : urlRepository.findAll()) {
-            list.add(new StatisticDto(url.getUrl(), url.getTotal()));
+    private String createCode() {
+        var code = generateRandomCode(LENGTH_URL_CODE.getLength());
+        while (findByCode(code).isPresent()) {
+            code = generateRandomCode(LENGTH_URL_CODE.getLength());
         }
-        return list;
+        return code;
     }
 }

@@ -61,7 +61,7 @@ class UrlControllerTest {
         var url = new Url();
         url.setUrl("https://job4j.ru/profile/exercise/106/task-view/532");
 
-        when(urlService.findByCode(code)).thenReturn(Optional.of(url));
+        when(urlService.increaseTotalIfPresentCode(code)).thenReturn(Optional.of(url));
 
         this.mockMvc.perform(get("/url/redirect/{code}", code))
                 .andDo(print())

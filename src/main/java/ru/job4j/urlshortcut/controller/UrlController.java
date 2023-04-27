@@ -30,15 +30,15 @@ public class UrlController {
 
     @GetMapping("/redirect/{code}")
     public ResponseEntity<Void> redirect(@PathVariable String code) {
-        var url = urlService.findByCode(code)
+        var url = urlService.increaseTotalIfPresentCode(code)
                 .orElseThrow(() -> new ResponseStatusException(
-                HttpStatus.NOT_FOUND, "UrlShortCut is not found. Please, check the spelling."
-        ));
-        urlService.increaseTotal(code);
+                        HttpStatus.NOT_FOUND, "UrlShortCut is not found. Please, check the spelling."
+                ));
         return ResponseEntity.status(HttpStatus.FOUND)
                 .location(URI.create(url.getUrl()))
                 .build();
     }
+
     @GetMapping("/statistic")
     public ResponseEntity<List<StatisticDto>> statistic() {
         return new ResponseEntity<>(

@@ -1,4 +1,4 @@
-package ru.job4j.urlshortcut.config;
+package ru.job4j.urlshortcut.security;
 
 import org.springframework.context.annotation.Bean;
 import org.springframework.http.HttpMethod;
@@ -13,18 +13,19 @@ import org.springframework.web.cors.CorsConfigurationSource;
 import org.springframework.web.cors.UrlBasedCorsConfigurationSource;
 import ru.job4j.urlshortcut.filter.JWTAuthenticationFilter;
 import ru.job4j.urlshortcut.filter.JWTAuthorizationFilter;
-import ru.job4j.urlshortcut.service.UserDetailsServiceImpl;
+import ru.job4j.urlshortcut.service.SiteService;
 
+import static ru.job4j.urlshortcut.filter.JWTAuthenticationFilter.REDIRECT_URL;
 import static ru.job4j.urlshortcut.filter.JWTAuthenticationFilter.SIGN_UP_URL;
 
 
 @EnableWebSecurity
 public class WebSecurity extends WebSecurityConfigurerAdapter {
-    private UserDetailsServiceImpl userDetailsService;
+    private SiteService siteService;
     private BCryptPasswordEncoder bCryptPasswordEncoder;
 
-    public WebSecurity(UserDetailsServiceImpl userDetailsService, BCryptPasswordEncoder bCryptPasswordEncoder) {
-        this.userDetailsService = userDetailsService;
+    public WebSecurity(SiteService siteService, BCryptPasswordEncoder bCryptPasswordEncoder) {
+        this.siteService = siteService;
         this.bCryptPasswordEncoder = bCryptPasswordEncoder;
     }
 
@@ -32,6 +33,7 @@ public class WebSecurity extends WebSecurityConfigurerAdapter {
     protected void configure(HttpSecurity http) throws Exception {
         http.cors().and().csrf().disable().authorizeRequests()
                 .antMatchers(HttpMethod.POST, SIGN_UP_URL).permitAll()
+                .antMatchers(HttpMethod.GET, REDIRECT_URL + "/**").permitAll()
                 .anyRequest().authenticated()
                 .and()
                 .addFilter(new JWTAuthenticationFilter(authenticationManager()))
@@ -42,7 +44,7 @@ public class WebSecurity extends WebSecurityConfigurerAdapter {
 
     @Override
     public void configure(AuthenticationManagerBuilder auth) throws Exception {
-        auth.userDetailsService(userDetailsService).passwordEncoder(bCryptPasswordEncoder);
+        auth.userDetailsService(siteService).passwordEncoder(bCryptPasswordEncoder);
     }
 
     @Bean

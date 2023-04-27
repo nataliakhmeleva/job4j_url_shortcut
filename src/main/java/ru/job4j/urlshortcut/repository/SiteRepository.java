@@ -7,5 +7,5 @@ import java.util.Optional;
 
 public interface SiteRepository extends CrudRepository<Site, Integer> {
     Optional<Site> findByName(String name);
-    Site findByLogin(String login);
+    Optional<Site> findByLogin(String login);
 }
